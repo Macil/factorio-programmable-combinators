@@ -1,0 +1,9 @@
+{
+  "name": "programmable-combinators",
+  "version": "0.1.0",
+  "title": "Programmable Combinators",
+  "author": "Macil",
+  "factorio_version": "1.1",
+  "dependencies": ["base >= 1.1"],
+  "description": "Adds programmable combinators to the game that can be controlled by external programs on your computer."
+}
