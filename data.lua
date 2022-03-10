@@ -1,1 +1,1 @@
-require("programmable-combinators")
+require("data.programmable-combinators")
