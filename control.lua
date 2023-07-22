@@ -59,7 +59,7 @@ commands.add_command(
       return
     end
     local combinator = nil
-    local surface = game.surfaces[arg.surface]
+    local surface = game.surfaces[arg.position.surface]
     if surface ~= nil then
       combinator = surface.find_entity("constant-combinator", arg.position)
     end
@@ -109,7 +109,7 @@ commands.add_command(
       return
     end
     local combinator = nil
-    local surface = game.surfaces[arg.surface]
+    local surface = game.surfaces[arg.position.surface]
     if surface ~= nil then
       combinator = surface.find_entity("constant-combinator", arg.position)
     end
