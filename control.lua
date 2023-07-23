@@ -84,6 +84,7 @@ commands.add_command(
         output.combinator.maxParameters = control_behavior.signals_count
       end
       if arg.fields.signals then
+        -- TODO let user pass in a filter for the signals they want
         output.combinator.signals = combinator.get_merged_signals()
       end
     end
