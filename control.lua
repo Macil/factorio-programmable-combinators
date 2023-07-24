@@ -12,7 +12,6 @@ end
 -- Add RCON command to get signal changes from any watched combinator since
 -- last command.
 -- Add RCON command to subscribe to signal changes through file writes.
--- RCON command to get filename for signal icon so companion program can show it.
 
 commands.add_command(
   "pd_get_combinator",
