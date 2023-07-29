@@ -40,6 +40,8 @@ function rcon_respond(arg)
   rcon.print(game.table_to_json(arg))
 end
 
+-- TODO
+-- allow batching
 commands.add_command(
   "pd_internal_read",
   "Internal Programmable Devices RCON command for the companion program",
@@ -64,7 +66,9 @@ commands.add_command(
       combinator = surface.find_entity("constant-combinator", arg.position)
     end
 
-    local output = {}
+    local output = {
+      tick = event.tick
+    }
     if combinator ~= nil then
       local control_behavior = combinator.get_or_create_control_behavior()
       output.combinator = {}
@@ -91,6 +95,8 @@ commands.add_command(
   end
 )
 
+-- TODO
+-- allow batching
 commands.add_command(
   "pd_internal_set",
   "Internal Programmable Devices RCON command for the companion program",
@@ -115,7 +121,9 @@ commands.add_command(
       combinator = surface.find_entity("constant-combinator", arg.position)
     end
 
-    local output = {}
+    local output = {
+      tick = event.tick
+    }
     if combinator ~= nil then
       local control_behavior = combinator.get_or_create_control_behavior()
       if arg.values.enabled ~= nil then

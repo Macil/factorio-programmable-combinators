@@ -2,10 +2,11 @@ local data_util = require('__flib__.data-util')
 
 local blank_image = "__programmable-devices__/graphics/blank.png"
 
+-- TODO should this be based on decider-combinator, constant-combinator, or something else simpler?
 local programmable_combinator_entity = data_util.copy_prototype(data.raw["decider-combinator"]["decider-combinator"], "programmable-combinator")
 programmable_combinator_entity.icon = "__programmable-devices__/graphics/icons/programmable-combinator.png"
 programmable_combinator_entity.corpse = "programmable-combinator-remnants"
-programmable_combinator_entity.active_energy_usage = "500KW"
+programmable_combinator_entity.active_energy_usage = "200KW"
 programmable_combinator_entity.sprites =
   make_4way_animation_from_spritesheet({ layers =
     {
