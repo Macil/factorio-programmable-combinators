@@ -40,6 +40,28 @@ function rcon_respond(arg)
   rcon.print(game.table_to_json(arg))
 end
 
+commands.add_command(
+  "pd_internal_get_game_id",
+  "Internal Programmable Devices RCON command for the companion program",
+  function(event)
+    if event.player_index ~= nil then
+      local player = game.players[event.player_index]
+      player.print("Error: This command is only available via RCON")
+      return
+    end
+    if event.parameter ~= nil then
+      if string.len(event.parameter) < 4 or string.len(event.parameter) > 36 then
+        rcon_respond{error = "Suggested game id must be between 4 and 36 characters"}
+        return
+      end
+      if global.game_id == nil then
+        global.game_id = event.parameter
+      end
+    end
+    rcon_respond{gameId = global.game_id, tick = event.tick}
+  end
+)
+
 -- TODO
 -- allow batching
 commands.add_command(
