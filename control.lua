@@ -40,57 +40,26 @@ function rcon_respond(arg)
   rcon.print(game.table_to_json(arg))
 end
 
-commands.add_command(
-  "pd_internal_get_game_id",
-  "Internal Programmable Devices RCON command for the companion program",
-  function(event)
-    if event.player_index ~= nil then
-      local player = game.players[event.player_index]
-      player.print("Error: This command is only available via RCON")
-      return
-    end
-    if event.parameter ~= nil then
-      if string.len(event.parameter) < 4 or string.len(event.parameter) > 36 then
-        rcon_respond{error = "Suggested game id must be between 4 and 36 characters"}
-        return
+local cmd_handlers = {
+  getGameId = function(arg)
+    if arg.suggestedId ~= nil then
+      if string.len(arg.suggestedId) < 4 or string.len(arg.suggestedId) > 36 then
+        return nil, {error = "Suggested game id must be between 4 and 36 characters"}
       end
       if global.game_id == nil then
-        global.game_id = event.parameter
+        global.game_id = arg.suggestedId
       end
     end
-    rcon_respond{gameId = global.game_id, tick = event.tick}
-  end
-)
+    return {gameId = global.game_id}
+  end,
 
--- TODO
--- allow batching
-commands.add_command(
-  "pd_internal_read",
-  "Internal Programmable Devices RCON command for the companion program",
-  function(event)
-    if event.player_index ~= nil then
-      local player = game.players[event.player_index]
-      player.print("Error: This command is only available via RCON")
-      return
-    end
-    if event.parameter == nil then
-      rcon_respond{error = "missing arg"}
-      return
-    end
-    local arg = game.json_to_table(event.parameter)
-    if arg == nil then
-      rcon_respond{error = "arg is not valid JSON"}
-      return
-    end
+  readCombinator = function(arg)
     local combinator = nil
     local surface = game.surfaces[arg.position.surface]
     if surface ~= nil then
       combinator = surface.find_entity("constant-combinator", arg.position)
     end
-
-    local output = {
-      tick = event.tick
-    }
+    local output = {}
     if combinator ~= nil then
       local control_behavior = combinator.get_or_create_control_behavior()
       output.combinator = {}
@@ -109,18 +78,39 @@ commands.add_command(
         output.combinator.maxParameters = control_behavior.signals_count
       end
       if arg.fields.signals then
-        -- TODO let user pass in a filter for the signals they want
+        -- TODO let user pass in a filter for the signals they want.
+        -- The signals value here can be nil. Caller does need to handle this case.
         output.combinator.signals = combinator.get_merged_signals()
       end
     end
-    rcon_respond(output)
-  end
-)
+    return output
+  end,
 
--- TODO
--- allow batching
+  setCombinator = function(arg)
+    local combinator = nil
+    local surface = game.surfaces[arg.position.surface]
+    if surface ~= nil then
+      combinator = surface.find_entity("constant-combinator", arg.position)
+    end
+    local output = {}
+    if combinator ~= nil then
+      local control_behavior = combinator.get_or_create_control_behavior()
+      if arg.values.enabled ~= nil then
+        control_behavior.enabled = arg.values.enabled
+      end
+      if arg.values.parameters ~= nil then
+        control_behavior.parameters = arg.values.parameters
+      end
+      output.success = true
+    else
+      output.success = false
+    end
+    return output
+  end,
+}
+
 commands.add_command(
-  "pd_internal_set",
+  "pd_internal_cmd",
   "Internal Programmable Devices RCON command for the companion program",
   function(event)
     if event.player_index ~= nil then
@@ -137,27 +127,28 @@ commands.add_command(
       rcon_respond{error = "arg is not valid JSON"}
       return
     end
-    local combinator = nil
-    local surface = game.surfaces[arg.position.surface]
-    if surface ~= nil then
-      combinator = surface.find_entity("constant-combinator", arg.position)
+
+    local responses = {}
+
+    for _, cmd in ipairs(arg.cmds) do
+      local handler = cmd_handlers[cmd.type]
+      local output = nil
+      if handler == nil then
+        output = {type = "error", v = {error = "Unknown command type: " .. cmd.type}}
+      else
+        local result, error = handler(cmd.v)
+        if error ~= nil then
+          output = {type = "error", v = error}
+        else
+          output = {type = cmd.type, v = result}
+        end
+      end
+      table.insert(responses, output)
     end
 
-    local output = {
-      tick = event.tick
+    rcon_respond{
+      responses = responses,
+      tick = game.tick,
     }
-    if combinator ~= nil then
-      local control_behavior = combinator.get_or_create_control_behavior()
-      if arg.values.enabled ~= nil then
-        control_behavior.enabled = arg.values.enabled
-      end
-      if arg.values.parameters ~= nil then
-        control_behavior.parameters = arg.values.parameters
-      end
-      output.success = true
-    else
-      output.success = false
-    end
-    rcon_respond(output)
   end
 )
